@@ -29,7 +29,7 @@ class CStreamer:
         })
         return json.loads(requests.request("POST", self.URLS['station'], headers=header).text)
 
-    def rawdata_stream(self, start: datetime, end: datetime, step: timedelta):
+    def get_rawdata(self, start: datetime, end: datetime, step: timedelta, filename: str):
         if end < start:
             raise Exception('End time should be not smaller than start time')
 
@@ -38,13 +38,13 @@ class CStreamer:
                 yield start_datetime + step * n
 
         for dt in daterange(start, end):
-            self._get_one_rawdata(dt)
+            self._get_one_rawdata(dt, filename)
         return {
             'streamed': self.streamed,
             'raw': self.raw_array
         }
 
-    def _get_one_rawdata(self, dt):
+    def _get_one_rawdata(self, dt, filename: str):
         time = dt.replace(microsecond=0).isoformat() + 'Z'
         if time not in self.streamed:
             header = self.HEADERS_COMMON.copy()
@@ -57,5 +57,5 @@ class CStreamer:
             self.raw_array.extend(response['raw'])
             self.streamed.append(time)
 
-            with open('rawdata_8', 'a') as file:
-                file.write(str(response['raw']) + '\n')
+            with open(filename, 'a') as file:
+                file.write(str(response['raw']) + ',')
