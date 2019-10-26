@@ -3,6 +3,7 @@ from cstreamer import CStreamer
 from ceventapi import CEventApi
 
 import cstops
+import json
 
 import numpy as np
 
@@ -26,3 +27,13 @@ print(events)
 
 # stopsapi = cstops.CStops()
 # stops = stopsapi.get_stations()
+# print(stops)
+
+f = open("events.txt", "w+")
+f.write(events)
+f.close()
+
+
+# stopsapi = cstops.CStops()
+# stops = stopsapi.get_nearest_station(60.45095, 25.01076)
+# print(stops)

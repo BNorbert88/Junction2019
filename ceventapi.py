@@ -16,7 +16,7 @@ class CEventApi:
     }
     # URL = "http://api.hel.fi/linkedevents/v1/?format=api"
     URLS = {
-        'events': "http://api.hel.fi/linkedevents/v1/event/?include=location,keywords&",
+        'events': "http://api.hel.fi/linkedevents/v1/event/?in_language=en,include=location,keywords",
         'places': "http://api.hel.fi/linkedevents/v1/place/?"
     }
 
@@ -24,8 +24,10 @@ class CEventApi:
         url = self.URLS['events']
         url += "start=" + str(start) + "&end=" + str(end)
         response = json.loads(requests.request("GET", url, headers=self.HEADERS_COMMON).text)
-        return response
+        return json.dumps(response, indent=4, sort_keys=True)
 
     def get_places(self):
         response = json.loads(requests.request("GET", self.URLS['places'], headers=self.HEADERS_COMMON).text)
-        return response
+        return json.dumps(response, indent=4, sort_keys=True)
+
+
