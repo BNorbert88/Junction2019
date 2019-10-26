@@ -1,13 +1,14 @@
 import numpy as np
 import requests
 import json
+import pandas as pd
 
 from gql import gql, Client
 from gql.transport.requests import RequestsHTTPTransport
 
 
 def get_distance(x, y, a, b):
-    return np.linalg.norm(np.array([x, y])-np.array([a, b]))
+    return np.linalg.norm(np.array([x, y]) - np.array([a, b]))
 
 
 class CStops:
@@ -38,7 +39,6 @@ class CStops:
     # }
     # }
 
-
     def get_stations(self):
         query = gql("""
             {
@@ -63,3 +63,11 @@ class CStops:
                 minstation = i
         return json.dumps(minstation, indent=4, sort_keys=True)
 
+
+    def get_station_locations(self):
+        data = {'name': [], 'lat': [], 'lon': []}
+        df = pd.DataFrame(data)
+        stops = json.loads(self.get_stations())
+        for i in stops['stations']:
+            df = df.append({'name': i['name'], 'lat': i['lat'], 'lon': i['lon']}, ignore_index=True)
+        return df

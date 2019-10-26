@@ -4,6 +4,7 @@ from ceventapi import CEventApi
 import cstops
 import cmyhelsinki
 import json
+import plotly.graph_objects as go
 
 import numpy as np
 
@@ -39,10 +40,43 @@ import numpy as np
 # print(stops)
 
 
-eventsapi = cmyhelsinki.CMyHelsinki()
-events = eventsapi.get_events()
-print(events)
+# eventsapi = cmyhelsinki.CMyHelsinki()
+# events = eventsapi.get_events()
+# print(events)
+#
+# f = open("myhelsinki_events.txt", "w+")
+# f.write(events)
+# f.close()
 
-f = open("myhelsinki_events.txt", "w+")
-f.write(events)
-f.close()
+import plotly.express as px
+
+stopsapi = cstops.CStops()
+#
+stations = stopsapi.get_station_locations()
+#
+# fig = px.scatter_mapbox(stations, lat="lat", lon="lon", hover_name="name", hover_data=["name"],
+#                         color_discrete_sequence=["fuchsia"], zoom=10, height=600)
+#
+# fig.update_layout(mapbox_style="open-street-map")
+# fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+#
+# fig.show()
+
+fig = go.Figure(go.Scattermapbox(
+    mode = "markers",
+    lon = stations['lon'], lat = stations['lat']))
+
+# fig.add_scatter(x=stations['lat'],y = stations['lon'], mode="lines",
+#                 marker=dict(size=20, color="LightSeaGreen"))
+
+fig.update_layout(
+    mapbox = {
+        'accesstoken': 'pk.eyJ1Ijoibm9yYmVydDg4IiwiYSI6ImNrMjgyY2Z4ZTF2dnQzYm16OXJmcDk3N3kifQ.BIt4mQU4oNObibeDEC7Yjg',
+        'style': "open-street-map", 'zoom': 10, 'center': go.layout.mapbox.Center(lon=24.9471, lat=60.2202)},
+    margin={"r": 0, "t": 0, "l": 0, "b": 0},
+    showlegend = False)
+
+
+
+fig.show()
+

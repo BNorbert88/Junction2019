@@ -1,3 +1,5 @@
+plotly
+pandas
 certifi==2019.9.11
 chardet==3.0.4
 gql==0.1.0
