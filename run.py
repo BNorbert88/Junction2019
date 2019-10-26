@@ -2,6 +2,8 @@ from datetime import datetime, timedelta, date
 from cstreamer import CStreamer
 from ceventapi import CEventApi
 
+import cstops
+
 import numpy as np
 
 # streamer = CStreamer()
@@ -15,9 +17,12 @@ import numpy as np
 
 eventapi = CEventApi()
 events = eventapi.get_events(
-    start=datetime(2019, 8, 10, 0, 0, 0),
-    end=datetime(2019, 8, 16, 0, 0, 0)
+    start=datetime(2019, 11, 1, 0, 0, 0),
+    end=datetime(2019, 11, 30, 0, 0, 0)
 )
-# print(events)
-places = eventapi.get_places()
+print(events)
+# places = eventapi.get_places()
 # print(places)
+
+# stopsapi = cstops.CStops()
+# stops = stopsapi.get_stations()
