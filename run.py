@@ -5,13 +5,17 @@ from ceventapi import CEventApi
 import cstops
 import cmyhelsinki
 import json
+import openrouteservice
 import plotly.graph_objects as go
 import plotly.express as px
+from openrouteservice import convert
 
 import numpy as np
 
 streamer = CStreamer()
 sensors = streamer.get_station_locations()
+
+
 # rawdata = streamer.get_rawdata(
 #     start=datetime(2019, 8, 10, 0, 0, 0),
 #     end=datetime(2019, 8, 17, 0, 0, 0),
@@ -51,9 +55,6 @@ sensors = streamer.get_station_locations()
 # f.close()
 
 
-
-
-
 #########################################xx
 
 def knn1(vek, mtx, k, kd=1000):
@@ -87,12 +88,62 @@ def knn1(vek, mtx, k, kd=1000):
     return (outind, outdis)
 
 
+def knn2(vek, mtx, k, distvek, maxdist=0, kd=1000):
+    l = len(mtx[:, 0])
+    outind = np.zeros(k) - 1
+    outdis = np.zeros(k) + kd
+
+    for i in range(l):
+
+        tav = np.sqrt(np.sum((vek - mtx[i, :]) * (vek - mtx[i, :])))
+        if (maxdist > 0):
+            if distvek[i] > maxdist:
+                continue
+
+        if maxdist == 0:
+            tav = tav * distvek[i] * 100
+
+        tolas = 0
+        tolin = 0
+        toldi = 0
+        for j in range(k):
+            if tolas == 0:
+                if tav < outdis[j]:
+                    tolin = outind[j]
+                    toldi = outdis[j]
+                    tolas = 1
+                    outind[j] = i
+                    outdis[j] = tav
+            else:
+                temp = outind[j]
+                outind[j] = tolin
+                tolin = temp
+                temp = outdis[j]
+                outdis[j] = toldi
+                toldi = temp
+
+    return (outind, outdis)
+
+
 f = open("myhelsinki_events.txt", "r+")
 beolv1 = json.loads(f.read())
 f.close()
 
 x1 = beolv1["data"]
 hossz1 = len(x1)
+
+gpsVek = np.zeros((hossz1, 3))
+
+for i in range(hossz1):
+    gpsVek[i, 0] = x1[i]["location"]["lat"]
+    gpsVek[i, 1] = x1[i]["location"]["lon"]
+
+latKoord = 60.17
+lonKoord = 24.95
+gpsKoord = np.array([latKoord, lonKoord])
+
+for i in range(hossz1):
+    gpsVek[i, 2] = np.sum((gpsVek[i, 0:2] - gpsKoord) * (gpsVek[i, 0:2] - gpsKoord))
 
 tagSzotar = beolv1["tags"]
 hossz2 = len(tagSzotar)
@@ -165,7 +216,8 @@ ember[6] = 1
 
 # after this we could search the best events to him/her
 output_events = 3
-(indexek, tavok) = knn1(ember, fullMtx1r, output_events)
+# (indexek, tavok) = knn1(ember, fullMtx1r, output_events)
+(indexek, tavok) = knn2(ember, fullMtx1r, output_events, gpsVek[:, 2], maxdist=0.005)
 
 # here the indexek store the numerical index of the event, we could read out the event from eventIds
 out_event_list = []
@@ -174,8 +226,8 @@ for i in range(output_events):
 
 eventsapi = cmyhelsinki.CMyHelsinki()
 
-
 ###########################################xxxxxxxxxxxxxxxxxxx
+
 
 stopsapi = cstops.CStops()
 
@@ -190,6 +242,7 @@ fig.add_scattermapbox(lat=stops['lat'], lon=stops['lon'], mode="markers",
 
 fig.add_scattermapbox(lat=sensors['lat'], lon=sensors['lon'], mode="markers",
                       marker=dict(size=12, color="black"))
+
 fig.update_layout(
     mapbox={
         'accesstoken': 'pk.eyJ1Ijoibm9yYmVydDg4IiwiYSI6ImNrMjgyY2Z4ZTF2dnQzYm16OXJmcDk3N3kifQ.BIt4mQU4oNObibeDEC7Yjg',
@@ -199,11 +252,25 @@ fig.update_layout(
 
 for i in out_event_list:
     event = eventsapi.get_specific_event(i)
-    print(event)
     fig.add_scattermapbox(lon=[event['location']['lon']], lat=[event['location']['lat']],
                           mode="markers+text", text="próba", textposition="top center",
                           marker=dict(size=25, color="brown"), name="", hovertext="próba3", hoverinfo="text",
                           customdata=[[event['description']['intro'], event['info_url']]],
                           hovertemplate='<b>%{customdata[0]}</b><br><br>%{customdata[1]}')
+for j in out_event_list:
+    event = eventsapi.get_specific_event(j)
+    print(event['location'])
+    coords = ((24.91438, 60.14947), (event['location']['lon'], event['location']['lat']))
+    client = openrouteservice.Client(
+        key='5b3ce3597851110001cf62486ec15dbb6fa040b1b964169eebc6824d')  # Specify your personal API key
+    geometry = client.directions(coords)['routes'][0]['geometry']
+    coordis = convert.decode_polyline(geometry)
+    print(coordis)
+    xlist = []
+    ylist = []
+    for i in coordis['coordinates']:
+        xlist.append(i[0])
+        ylist.append(i[1])
+    fig.add_scattermapbox(lat=ylist, lon=xlist, mode="lines", marker=dict(size=20, color="red"))
 
 fig.show()
