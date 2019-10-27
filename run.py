@@ -194,12 +194,19 @@ hosszrovid = len(tagSzotarRovid1)
 fullMtx1r = fullMtx1 * cserevek
 
 ember = np.zeros(hossz2)
+# maps transport
 ember[0] = 1
+# daycare education
 ember[1] = 0
+# culture leisure
 ember[2] = 1
-ember[3] = 0
+# housing environment
+ember[3] = 1
+# city administration
 ember[4] = 1
+# social services healtcare
 ember[5] = 0
+# general
 ember[6] = 1
 
 # emberu = np.zeros(hossz2)
@@ -259,13 +266,12 @@ for i in out_event_list:
                           hovertemplate='<b>%{customdata[0]}</b><br><br>%{customdata[1]}')
 for j in out_event_list:
     event = eventsapi.get_specific_event(j)
-    print(event['location'])
+    print(event)
     coords = ((24.91438, 60.14947), (event['location']['lon'], event['location']['lat']))
     client = openrouteservice.Client(
         key='5b3ce3597851110001cf62486ec15dbb6fa040b1b964169eebc6824d')  # Specify your personal API key
     geometry = client.directions(coords)['routes'][0]['geometry']
     coordis = convert.decode_polyline(geometry)
-    print(coordis)
     xlist = []
     ylist = []
     for i in coordis['coordinates']:
