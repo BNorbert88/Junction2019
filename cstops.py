@@ -81,6 +81,9 @@ class CStops:
                         name
                         lat
                         lon
+                        patterns {
+                            directionId
+                        }
                     }
                 }
             }
@@ -88,6 +91,7 @@ class CStops:
         data = {'name': [], 'lat': [], 'lon': []}
         df = pd.DataFrame(data)
         stops = self.client.execute(query)
+
         for i in stops['routes'][0]['stops']:
             df = df.append({'name': i['name'], 'lat': i['lat'], 'lon': i['lon']}, ignore_index=True)
         return df
