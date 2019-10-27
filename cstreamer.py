@@ -1,5 +1,6 @@
 import requests
 import json
+import pandas as pd
 from datetime import datetime, timedelta
 
 
@@ -28,6 +29,14 @@ class CStreamer:
             'command': "list"
         })
         return json.loads(requests.request("POST", self.URLS['station'], headers=header).text)
+
+    def get_station_locations(self):
+        data = {'name': [], 'lat': [], 'lon': []}
+        df = pd.DataFrame(data)
+        stations = self.get_stations()
+        for i in stations['list']:
+            df = df.append({'name': i['description'], 'lat': i['latitude'], 'lon': i['longitude']}, ignore_index=True)
+        return df
 
     def get_rawdata(self, start: datetime, end: datetime, step: timedelta, filename: str):
         if end < start:

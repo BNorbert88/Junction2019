@@ -5,11 +5,12 @@ import cstops
 import cmyhelsinki
 import json
 import plotly.graph_objects as go
+import plotly.express as px
 
 import numpy as np
 
-# streamer = CStreamer()
-# stations = streamer.get_stations()
+streamer = CStreamer()
+sensors = streamer.get_station_locations()
 # rawdata = streamer.get_rawdata(
 #     start=datetime(2019, 8, 10, 0, 0, 0),
 #     end=datetime(2019, 8, 17, 0, 0, 0),
@@ -48,33 +49,32 @@ import numpy as np
 # f.write(events)
 # f.close()
 
-import plotly.express as px
 
 stopsapi = cstops.CStops()
-#
+
 stations = stopsapi.get_station_locations()
-#
-# fig = px.scatter_mapbox(stations, lat="lat", lon="lon", hover_name="name", hover_data=["name"],
-#                         color_discrete_sequence=["fuchsia"], zoom=10, height=600)
-#
-# fig.update_layout(mapbox_style="open-street-map")
-# fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
-#
-# fig.show()
 
 fig = go.Figure(go.Scattermapbox(
-    mode = "markers",
-    lon = stations['lon'], lat = stations['lat']))
+    mode="markers", marker=dict(size=10, color="magenta"),
+    lon=stations['lon'], lat=stations['lat']))
 
-fig.add_scattermapbox(lat=stations['lat'],lon = stations['lon'], mode="lines",
-                marker=dict(size=20, color="LightSeaGreen"))
+stops = stopsapi.get_stations_tram()
+
+fig.add_scattermapbox(lat=stops['lat'], lon=stops['lon'], mode="markers",
+                      marker=dict(size=8, color="blue"))
+
+fig.add_scattermapbox(lat=sensors['lat'], lon=sensors['lon'], mode="markers",
+                      marker=dict(size=12, color="black"))
+
+
+fig.add_scattermapbox(lon=[24.94], lat=[60.22], mode="markers", text=['próba'],
+                      marker=dict(size=10, color="red"))
 
 fig.update_layout(
-    mapbox = {
+    mapbox={
         'accesstoken': 'pk.eyJ1Ijoibm9yYmVydDg4IiwiYSI6ImNrMjgyY2Z4ZTF2dnQzYm16OXJmcDk3N3kifQ.BIt4mQU4oNObibeDEC7Yjg',
         'style': "open-street-map", 'zoom': 10, 'center': go.layout.mapbox.Center(lon=24.9471, lat=60.2202)},
     margin={"r": 0, "t": 0, "l": 0, "b": 0},
-    showlegend = False)
+    showlegend=False)
 
 fig.show()
-

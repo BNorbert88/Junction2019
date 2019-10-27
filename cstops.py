@@ -63,7 +63,6 @@ class CStops:
                 minstation = i
         return json.dumps(minstation, indent=4, sort_keys=True)
 
-
     def get_station_locations(self):
         data = {'name': [], 'lat': [], 'lon': []}
         df = pd.DataFrame(data)
@@ -71,3 +70,25 @@ class CStops:
         for i in stops['stations']:
             df = df.append({'name': i['name'], 'lat': i['lat'], 'lon': i['lon']}, ignore_index=True)
         return df
+
+    def get_stations_tram(self):
+        query = gql("""
+            {
+                routes(name: "7", transportModes: TRAM) {
+                    shortName
+                    longName
+                    stops {
+                        name
+                        lat
+                        lon
+                    }
+                }
+            }
+            """)
+        data = {'name': [], 'lat': [], 'lon': []}
+        df = pd.DataFrame(data)
+        stops = self.client.execute(query)
+        for i in stops['routes'][0]['stops']:
+            df = df.append({'name': i['name'], 'lat': i['lat'], 'lon': i['lon']}, ignore_index=True)
+        return df
+        # return json.dumps(stops['routes'][0], indent=4, sort_keys=True)
