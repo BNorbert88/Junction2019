@@ -16,4 +16,5 @@ class CMyHelsinki:
     def get_specific_event(self, event_id):
         response = json.loads(
             requests.request("GET", self.url2+urllib.parse.quote(event_id)).text)
+        print(response)
         return response

@@ -7,13 +7,15 @@ import cmyhelsinki
 import json
 import openrouteservice
 import plotly.graph_objects as go
+import chart_studio.plotly as py
 import plotly.express as px
 from openrouteservice import convert
+import plotly
 
 import numpy as np
 
-streamer = CStreamer()
-sensors = streamer.get_station_locations()
+# streamer = CStreamer()
+# sensors = streamer.get_station_locations()
 
 
 # rawdata = streamer.get_rawdata(
@@ -222,7 +224,7 @@ ember[6] = 1
 #     emberu[tagSzotar2.get(temp2)] = 1
 
 # after this we could search the best events to him/her
-output_events = 3
+output_events = 1
 # (indexek, tavok) = knn1(ember, fullMtx1r, output_events)
 (indexek, tavok) = knn2(ember, fullMtx1r, output_events, gpsVek[:, 2], maxdist=0.005)
 
@@ -247,8 +249,8 @@ stops = stopsapi.get_stations_tram()
 fig.add_scattermapbox(lat=stops['lat'], lon=stops['lon'], mode="markers",
                       marker=dict(size=8, color="blue"))
 
-fig.add_scattermapbox(lat=sensors['lat'], lon=sensors['lon'], mode="markers",
-                      marker=dict(size=12, color="black"))
+# fig.add_scattermapbox(lat=sensors['lat'], lon=sensors['lon'], mode="markers",
+#                       marker=dict(size=12, color="black"))
 
 fig.update_layout(
     mapbox={
@@ -280,3 +282,7 @@ for j in out_event_list:
     fig.add_scattermapbox(lat=ylist, lon=xlist, mode="lines", marker=dict(size=20, color="red"))
 
 fig.show()
+# py.iplot(fig, filename='Map')
+# plotly.offline.plot(fig, image_filename='Map2', image='svg')
+# plotly.io.write_html(fig, file='hello.html', auto_open=True)
+#
