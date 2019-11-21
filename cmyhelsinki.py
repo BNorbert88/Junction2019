@@ -11,10 +11,9 @@ class CMyHelsinki:
     def get_events(self):
         response = json.loads(
             requests.request("GET", self.url).text)
-        return json.dumps(response, indent=4, sort_keys=True)
+        return response
 
     def get_specific_event(self, event_id):
         response = json.loads(
             requests.request("GET", self.url2+urllib.parse.quote(event_id)).text)
-        print(response)
         return response

@@ -11,12 +11,12 @@ import chart_studio.plotly as py
 import plotly.express as px
 from openrouteservice import convert
 import plotly
-
 import numpy as np
 
-# streamer = CStreamer()
-# sensors = streamer.get_station_locations()
 
+#########################################
+# Test codes, not in use
+#########################################
 
 # rawdata = streamer.get_rawdata(
 #     start=datetime(2019, 8, 10, 0, 0, 0),
@@ -25,39 +25,16 @@ import numpy as np
 #     filename='190810'
 # )
 
+# Old source of events
 # eventapi = CEventApi()
 # events = eventapi.get_events(
 #     start=datetime(2019, 11, 1, 0, 0, 0),
 #     end=datetime(2019, 11, 30, 0, 0, 0)
 # )
-# print(events)
-# places = eventapi.get_places()
-# print(places)
 
-# stopsapi = cstops.CStops()
-# stops = stopsapi.get_stations()
-# print(stops)
-
-# f = open("events.txt", "w+")
-# f.write(events)
-# f.close()
-
-
-# stopsapi = cstops.CStops()
-# stops = stopsapi.get_nearest_station(60.45095, 25.01076)
-# print(stops)
-
-
-# eventsapi = cmyhelsinki.CMyHelsinki()
-# events = eventsapi.get_events()
-# print(events)
-#
-# f = open("myhelsinki_events.txt", "w+")
-# f.write(events)
-# f.close()
-
-
-#########################################xx
+#########################################
+# Szabi's algorithms, functions, mess
+#########################################
 
 def knn1(vek, mtx, k, kd=1000):
     l = len(mtx[:, 0])
@@ -126,10 +103,23 @@ def knn2(vek, mtx, k, distvek, maxdist=0, kd=1000):
 
     return (outind, outdis)
 
+# Call a class to handle event by an API
+eventsapi = cmyhelsinki.CMyHelsinki()
+
+# To read every event from API is slow, they are saved into a file
+# If the file is deprecated, update the file for example by inter changing the comments below.
 
 f = open("myhelsinki_events.txt", "r+")
 beolv1 = json.loads(f.read())
 f.close()
+
+# f = open("myhelsinki_events.txt", "w+")
+# beolv1 = eventsapi.get_events()
+# f.write(json.dumps(beolv1))
+# f.close()
+
+#####################
+# Continuation of Szabi's algorithm
 
 x1 = beolv1["data"]
 hossz1 = len(x1)
@@ -223,42 +213,52 @@ ember[6] = 1
 #     kerdes_tagek.append(temp2)
 #     emberu[tagSzotar2.get(temp2)] = 1
 
-# after this we could search the best events to him/her
-output_events = 1
+# After this we could search the best events to him/her
+# output_events defines the number of suggested events
+output_events = 3
+# Old knn version (knn1) is switched to a new one (knn2) concerning distance
 # (indexek, tavok) = knn1(ember, fullMtx1r, output_events)
-(indexek, tavok) = knn2(ember, fullMtx1r, output_events, gpsVek[:, 2], maxdist=0.005)
+(indexek, tavok) = knn2(ember, fullMtx1r, output_events, gpsVek[:, 2], maxdist=0.0005)
 
-# here the indexek store the numerical index of the event, we could read out the event from eventIds
+# Here the indexes store the numerical index of the event, we could read out the event from eventIds
 out_event_list = []
 for i in range(output_events):
     out_event_list.append(eventIds[int(indexek[i])])
 
-eventsapi = cmyhelsinki.CMyHelsinki()
+#########################################
+# End of Szabi's algorithms, functions, mess
+#########################################
 
-###########################################xxxxxxxxxxxxxxxxxxx
-
-
+# Call a class to identify stations of a transport line
 stopsapi = cstops.CStops()
-
-stations = stopsapi.get_station_locations()
-
-fig = go.Figure()
-
+# Get the stations of a tram
 stops = stopsapi.get_stations_tram()
 
+# Define the map
+fig = go.Figure()
+
+# Tram stations are added to the map (blue points)
 fig.add_scattermapbox(lat=stops['lat'], lon=stops['lon'], mode="markers",
                       marker=dict(size=8, color="blue"))
 
+# Sensor data are not accessible.
+# Call a class to identify stations of a transport line
+# streamer = CStreamer()
+# Get the sensors
+# sensors = streamer.get_station_locations()
+# Sensors are added to the map (black points)
 # fig.add_scattermapbox(lat=sensors['lat'], lon=sensors['lon'], mode="markers",
 #                       marker=dict(size=12, color="black"))
 
+# Design the initial positions of the map
 fig.update_layout(
     mapbox={
-        'accesstoken': 'pk.eyJ1Ijoibm9yYmVydDg4IiwiYSI6ImNrMjgyY2Z4ZTF2dnQzYm16OXJmcDk3N3kifQ.BIt4mQU4oNObibeDEC7Yjg',
+        'accesstoken': 'pk.eyJ1Ijoibm9yYmVydDg4IiwiYSI6ImNrMzdqeW5odTAwOXAzaG85N3drazA1N2cifQ.yzj4J9K18im1wJK32CfANw',
         'style': "open-street-map", 'zoom': 13, 'center': go.layout.mapbox.Center(lon=24.9471, lat=60.1602)},
     margin={"r": 0, "t": 0, "l": 0, "b": 0},
     showlegend=False)
 
+# Listed events are added to the map (brown points)
 for i in out_event_list:
     event = eventsapi.get_specific_event(i)
     fig.add_scattermapbox(lon=[event['location']['lon']], lat=[event['location']['lat']],
@@ -266,6 +266,8 @@ for i in out_event_list:
                           marker=dict(size=25, color="brown"), name="", hovertext="próba3", hoverinfo="text",
                           customdata=[[event['description']['intro'], event['info_url']]],
                           hovertemplate='<b>%{customdata[0]}</b><br><br>%{customdata[1]}')
+
+# Routes to the listed events are added to the map (red paths)
 for j in out_event_list:
     event = eventsapi.get_specific_event(j)
     print(event)
@@ -281,8 +283,9 @@ for j in out_event_list:
         ylist.append(i[1])
     fig.add_scattermapbox(lat=ylist, lon=xlist, mode="lines", marker=dict(size=20, color="red"))
 
+# Plot the map
 fig.show()
-# py.iplot(fig, filename='Map')
+
+# We can make offline version of the output map
 # plotly.offline.plot(fig, image_filename='Map2', image='svg')
 # plotly.io.write_html(fig, file='hello.html', auto_open=True)
-#
