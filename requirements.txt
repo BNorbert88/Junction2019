@@ -4,7 +4,7 @@ gmplot==1.2.0
 gql==0.1.0
 graphql-core==2.2.1
 idna==2.8
-numpy==1.17.3
+numpy==1.22.0
 openrouteservice==2.2.3
 pandas==0.25.2
 plotly==4.2.1
